@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net11.0</TargetFramework>
     <IsTestProject>false</IsTestProject>
@@ -10,7 +10,7 @@
     <ApplicationIcon />
     <StartupObject />
     <ToolCommandName>git-clean</ToolCommandName>
-    <VersionPrefix>0.0.1</VersionPrefix>
+    <VersionPrefix>0.1.0</VersionPrefix>
     <Authors>Casey Crouse</Authors>
     <PackageId>Git.Clean</PackageId>
     <Description>A dotnet core CLI tool that helps automate managing repository maintenance.</Description>
