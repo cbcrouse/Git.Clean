@@ -1,9 +1,6 @@
 using FluentValidation.TestHelper;
-using FluentValidation.Validators;
-using FluentValidation.Validators.UnitTestExtension.Composer;
-using FluentValidation.Validators.UnitTestExtension.Core;
 using Git.Clean.Validators;
-using Microsoft.VisualStudio.TestPlatform.PlatformAbstractions;
+using Git.Clean.Commands;
 using System.IO;
 using System.Reflection;
 using Xunit;
@@ -20,7 +17,7 @@ namespace Git.Clean.Tests
             var sut = new RemoveStaleBranchesValidator();
 
             // Act & Assert
-            sut.ShouldHaveValidationErrorFor(x => x.GitDirectory, invalidDirectory).WithErrorMessage("Must be a valid directory.");
+            sut.TestValidate(new RemoveStaleBranches { GitDirectory = invalidDirectory }).ShouldHaveValidationErrorFor(x => x.GitDirectory).WithErrorMessage("Must be a valid directory.");
         }
 
         [Fact]
@@ -31,14 +28,14 @@ namespace Git.Clean.Tests
             var sut = new RemoveStaleBranchesValidator();
 
             // Act & Assert
-            sut.ShouldHaveValidationErrorFor(x => x.GitDirectory, invalidDirectory).WithErrorMessage("Must be a valid .git directory.");
+            sut.TestValidate(new RemoveStaleBranches { GitDirectory = invalidDirectory }).ShouldHaveValidationErrorFor(x => x.GitDirectory).WithErrorMessage("Must be a valid .git directory.");
         }
 
         [Fact]
         public void Validator_Succeeds_OnValidDirectory()
         {
             // Arrange
-            string frameworkDir = Directory.GetParent(Assembly.GetExecutingAssembly().GetAssemblyLocation())!.FullName;
+            string frameworkDir = Directory.GetParent(Assembly.GetExecutingAssembly().Location)!.FullName;
             string configDir = Directory.GetParent(frameworkDir)!.FullName;
             string binDir = Directory.GetParent(configDir)!.FullName;
             string projectDir = Directory.GetParent(binDir)!.FullName;
@@ -47,7 +44,7 @@ namespace Git.Clean.Tests
             var sut = new RemoveStaleBranchesValidator();
 
             // Act & Assert
-            sut.ShouldNotHaveValidationErrorFor(x => x.GitDirectory, slnDir);
+            sut.TestValidate(new RemoveStaleBranches { GitDirectory = slnDir }).ShouldNotHaveValidationErrorFor(x => x.GitDirectory);
         }
 
         [Theory]
@@ -59,7 +56,7 @@ namespace Git.Clean.Tests
             var sut = new RemoveStaleBranchesValidator();
 
             // Act & Assert
-            sut.ShouldHaveValidationErrorFor(x => x.StaleMonths, staleMonths);
+            sut.TestValidate(new RemoveStaleBranches { StaleMonths = staleMonths }).ShouldHaveValidationErrorFor(x => x.StaleMonths);
         }
 
         [Fact]
@@ -69,21 +66,20 @@ namespace Git.Clean.Tests
             var sut = new RemoveStaleBranchesValidator();
 
             // Act & Assert
-            sut.ShouldHaveRules(x => x.StaleMonths,
-                BaseVerifiersSetComposer.Build()
-                    .AddPropertyValidatorVerifier<GreaterThanValidator>(0)
-                    .Create());
-
-            sut.ShouldHaveRules(x => x.RemoteTarget,
-                BaseVerifiersSetComposer.Build()
-                    .AddPropertyValidatorVerifier<NotNullValidator>()
-                    .AddPropertyValidatorVerifier<NotEmptyValidator>()
-                    .Create());
-
-            sut.ShouldHaveRules(x => x.IgnoreBranches,
-                BaseVerifiersSetComposer.Build()
-                    .AddPropertyValidatorVerifier<NotNullValidator>() 
-                    .Create());
+            sut.TestValidate(new RemoveStaleBranches { StaleMonths = 0 })
+                .ShouldHaveValidationErrorFor(x => x.StaleMonths);
+            sut.TestValidate(new RemoveStaleBranches { RemoteTarget = null! })
+                .ShouldHaveValidationErrorFor(x => x.RemoteTarget);
+            sut.TestValidate(new RemoveStaleBranches { RemoteTarget = string.Empty })
+                .ShouldHaveValidationErrorFor(x => x.RemoteTarget);
+            sut.TestValidate(new RemoveStaleBranches { IgnoreBranches = null! })
+                .ShouldHaveValidationErrorFor(x => x.IgnoreBranches);
+            sut.TestValidate(new RemoveStaleBranches())
+                .ShouldNotHaveValidationErrorFor(x => x.StaleMonths);
+            sut.TestValidate(new RemoveStaleBranches())
+                .ShouldNotHaveValidationErrorFor(x => x.RemoteTarget);
+            sut.TestValidate(new RemoveStaleBranches())
+                .ShouldNotHaveValidationErrorFor(x => x.IgnoreBranches);
         }
     }
 }
